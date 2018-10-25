@@ -59,3 +59,7 @@ typings/
 
 # next.js build output
 .next
+
+# data directory for storing images
+data/*
+!data/.keep

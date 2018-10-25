@@ -1,6 +1,7 @@
 const Eris = require('eris');
 const Redis = require('ioredis');
 const { client, xml, jid } = require('@xmpp/client');
+const debug = require('debug')('bridge');
 const vcard = require('./lib/vcard/caller');
 const avatar = require('./lib/utils/avatar');
 const pomfUpload = require('./lib/utils/owo');
@@ -18,7 +19,7 @@ const xmpp = client({
   password: process.env.JABBER_PASSWORD,
 });
 
-const fetchAvatar = jid => vcard(xmpp).get({ to: jid });
+const fetchVCard = id => vcard(xmpp).get({ to: id });
 
 /**
  * We download avatar metadata and all related stuff and cache it in Redis
@@ -30,91 +31,64 @@ const downloadAvatar = async (stanza) => {
   } = stanza;
   const avatarHash = await avatar.getHash(stanza);
 
-  console.log(from);
-  console.log(avatarHash);
-
   if (!avatarHash) return;
 
-  const av = (await fetchAvatar(from)).PHOTO;
+  // If this hash exists AND it's the same, we do nothing
+  if ((await redis.get(`${avatarHash}:url`)) && (await redis.get(from)) === avatarHash) {
+    console.log(`Avatars for ${from} are identical, skipping avatar sync.`);
+    return;
+  }
+
+  // Fetches the vcard, then returns the photo from it
+  const av = (await fetchVCard(from)).PHOTO;
+
   await redis.set(from, avatarHash);
+
   await redis.set(`${avatarHash}:data`, av.BINVAL);
   await redis.set(`${avatarHash}:type`, av.TYPE);
 
+  // Upload the avatar to a Pomf compaitable host
   const data = await pomfUpload({ data: av.BINVAL, type: av.TYPE, hash: avatarHash });
   const path = `./data/${data.files[0].name}`;
 
-  console.log(data.files[0].url);
-
+  // Set the metadata
   await redis.set(`${avatarHash}:path`, path);
   await redis.set(`${avatarHash}:url`, process.env.POMF_HOST + data.files[0].url);
   await redis.set(`${avatarHash}:color`, parseInt(await avatarColor(path), 16));
 };
 
 /**
- * This doesn't work due to Discord's Webhook limit/server
- * I was attempting to give every user a single webhook
+ * Bridge the message to Discord
+ * @param {object} stanza
  */
-// const setWebhooks = ({ from, id, token }) =>
-//  Promise.all([redis.set(`${from}:webhook:id`, id), redis.set(`${from}:webhook:token`, token)]);
-
-// const configureWebhooks = async (stanza) => {
-//   const name = jid(stanza.attrs.from).resource;
-//   const list = await discord.getChannelWebhooks(CHANNEL);
-
-//   // console.log(list);
-//   const avHash = await redis.get(stanza.attrs.from);
-
-//   if (list.find(val => val.name === name)) return;
-
-//   const res = await discord.createChannelWebhook(CHANNEL, {
-//     name,
-//     avatar: `data:${mime.getExtension(await redis.get(`${avHash}:type`))};base64,${await redis.get(
-//       `${avHash}:data`,
-//     )}`,
-//   });
-
-//   console.log({ from: stanza.attrs.from, id: res.id, token: res.token });
-//   await setWebhooks({ from: stanza.attrs.from, id: res.id, token: res.token });
-// };
-
-const sendToDiscord = async (stanza) => {
+const bridgeToDiscord = async (stanza) => {
   const {
     attrs: { from },
   } = stanza;
-
-  console.log(from);
-
-  // await redis.get(`${from}:webhook:id`),
-  // await redis.get(`${from}:webhook:token`),
   const avatarHash = await redis.get(from);
 
-  console.log(avatarHash);
-
-  console.log(await redis.get(avatarHash));
-
-  // console.log(await redis.get(`${avatarHash}:color`));
-
-  const res = await discord.executeWebhook(
-    process.env.DISCORD_WEBHOOK_ID,
-    process.env.DISCORD_WEBHOOK_TOKEN,
-    {
-      embeds: [
-        {
-          // title: 'Message from XMPP',
-          description: stanza.getChildText('body'),
-          author: {
-            name: jid(from).resource,
-            icon_url: await redis.get(avatarHash),
-          },
-          color: avatarHash && (await redis.get(`${avatarHash}:color`)),
+  await discord.executeWebhook(process.env.DISCORD_WEBHOOK_ID, process.env.DISCORD_WEBHOOK_TOKEN, {
+    embeds: [
+      {
+        description: stanza.getChildText('body'),
+        author: {
+          name: jid(from).resource,
+          icon_url: await redis.get(`${avatarHash}:url`),
         },
-      ],
-    },
-  );
-  console.log(res);
+        color: avatarHash && (await redis.get(`${avatarHash}:color`)),
+      },
+    ],
+  });
 };
 
-const sendToXMPP = (name, msg) => {
+/**
+ * Bridge a simple message to XMPP
+ * TODO: attachments and some other cool stuff
+ *
+ * @param {string} name
+ * @param {string} msg
+ */
+const bridgeToXMPP = (name, msg) => {
   const message = xml(
     'message',
     { type: 'groupchat', to: process.env.JABBER_MUC },
@@ -124,20 +98,23 @@ const sendToXMPP = (name, msg) => {
 };
 
 // Discord handlers
-// message handler
 discord.on('messageCreate', async (msg) => {
   if (msg.author.bot) return;
 
-  console.log(msg);
-  await sendToXMPP(msg.author.username, msg.cleanContent);
+  await bridgeToXMPP(msg.author.username, msg.cleanContent);
 });
 
+discord.on('connect', (id) => {
+  console.log('🗸', 'Discord online on shard', id);
+});
+
+// XMPP Handlers
 xmpp.on('error', (err) => {
-  console.error('❌', err.toString());
+  console.error('⚠️', err.toString());
 });
 
 xmpp.on('online', async (address) => {
-  console.log('🗸', 'Online as', address.toString());
+  console.log('🗸', 'XMPP online as', address.toString());
 
   const msg = xml(
     'presence',
@@ -149,6 +126,8 @@ xmpp.on('online', async (address) => {
 });
 
 xmpp.on('stanza', async (stanza) => {
+  debug(stanza.toString());
+
   try {
     if (stanza.is('presence') && stanza.getChild('x').attrs.xmlns === 'vcard-temp:x:update') {
       await downloadAvatar(stanza);
@@ -160,11 +139,10 @@ xmpp.on('stanza', async (stanza) => {
   if (
     !stanza.is('message')
     || !stanza.getChild('body')
-    || (stanza.is('message') && stanza.attrs.from === process.env.JABBER_MUC_JID)
+    || stanza.attrs.from === process.env.JABBER_MUC_JID
   ) return;
 
-  sendToDiscord(stanza);
-  // console.log(stanza.toString());
+  bridgeToDiscord(stanza);
 });
 
 // Connect to the services
