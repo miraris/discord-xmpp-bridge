@@ -88,20 +88,24 @@ const bridgeToDiscord = async (stanza) => {
  * @param {string} name
  * @param {string} msg
  */
-const bridgeToXMPP = (name, msg) => {
+const bridgeToXMPP = ({ channel, author, msg }) => {
   const message = xml(
     'message',
     { type: 'groupchat', to: process.env.JABBER_MUC },
-    xml('body', {}, `<${name}> ${msg}`),
+    xml('body', {}, `[#${channel}] <${author}> ${msg}`),
   );
   xmpp.send(message);
 };
 
 // Discord handlers
 discord.on('messageCreate', async (msg) => {
-  if (msg.author.bot) return;
+  if (msg.author.bot || msg.channel.guild.id !== process.env.DISCORD_GUILD_ID) return;
 
-  await bridgeToXMPP(msg.author.username, msg.cleanContent);
+  await bridgeToXMPP({
+    channel: msg.channel.name,
+    author: msg.author.username,
+    msg: msg.cleanContent,
+  });
 });
 
 discord.on('connect', (id) => {
