@@ -14,13 +14,13 @@ const xmpp = client({
   password: process.env.JABBER_PASSWORD,
 });
 
-const getAvatar = _ => redis.get('foo');
+const getAvatar = () => redis.get('foo');
 
 // Discord handlers
 // message handler
 discord.on('messageCreate', async (msg) => {
   console.log(`[#${msg.channel.name}] ${msg.content}`);
-  const av = await getAvatar('sha1'); // by sha sum?
+  const av = await getAvatar(); // by sha sum?
   console.log(av);
 });
 
