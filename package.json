@@ -1,0 +1,23 @@
+{
+  "name": "discord-xmpp-bridge",
+  "version": "1.0.0",
+  "description": "Simple fast dirty discord xmpp bridge with user/avatar spoofing support",
+  "main": "bridge.js",
+  "scripts": {
+    "start": "node bridge.js"
+  },
+  "repository": "git@github.com:miraris/discord-xmpp-bridge.git",
+  "author": "Miraris <miraris@autistici.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@xmpp/client": "^0.5.2",
+    "@xmpp/xml": "^0.5.0",
+    "eris": "^0.9.0",
+    "ioredis": "^4.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.7.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0"
+  }
+}
