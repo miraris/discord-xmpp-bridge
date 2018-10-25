@@ -6,6 +6,7 @@ const vcard = require('./lib/vcard/caller');
 const avatar = require('./lib/utils/avatar');
 const pomfUpload = require('./lib/utils/owo');
 const avatarColor = require('./lib/utils/color');
+const helpers = require('./lib/utils/helpers');
 
 // Redis
 const redis = new Redis(process.env.REDIS_URL);
@@ -104,7 +105,7 @@ discord.on('messageCreate', async (msg) => {
   await bridgeToXMPP({
     channel: msg.channel.name,
     author: msg.author.username,
-    msg: msg.cleanContent,
+    msg: helpers.buildDiscordMsg(msg),
   });
 });
 
