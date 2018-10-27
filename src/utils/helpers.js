@@ -6,6 +6,10 @@ const buildDiscordMsg = (msg) => {
   return `${msg.cleanContent} ${msg.attachments.map(a => a.url).join(' ')}`;
 };
 
+function registerEventHandlers(xmpp, discord) {
+  // stuff
+}
+
 module.exports = {
   buildDiscordMsg,
 };

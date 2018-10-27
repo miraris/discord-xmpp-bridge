@@ -515,6 +515,11 @@ doctrine@^2.1.0:
   dependencies:
     esutils "^2.0.2"
 
+dotenv@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-6.1.0.tgz#9853b6ca98292acb7dec67a95018fa40bccff42c"
+  integrity sha512-/veDn2ztgRlB7gKmE3i9f6CmDIyXAy6d5nBq+whO9SLX+Zs1sXEgFLPi+aSuWqUuusMfbi84fT8j34fs1HaYUw==
+
 eris@^0.9.0:
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/eris/-/eris-0.9.0.tgz#a2796839f7768cd40645c2c6b1bf0c86ba3147f3"
@@ -830,6 +835,13 @@ globby@^5.0.0:
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
 
+good-env@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/good-env/-/good-env-3.0.0.tgz#42e69489a62f410136b4517a62fa3b4f67148ad6"
+  integrity sha512-49LXd4605GPZPz9ecBiOSSta1T4DgJnVzBgONik/G3viIVfKPnzizXcDqRMIL0Za96FlDxN2s4gDF9JjmiOD5g==
+  dependencies:
+    is_js "^0.8.0"
+
 graceful-fs@^4.1.2:
   version "4.1.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
@@ -1004,6 +1016,11 @@ is-symbol@^1.0.2:
   integrity sha512-HS8bZ9ox60yCJLH9snBpIwv9pYUAkcuLhSA1oero1UB5y9aiQpRA8y2ex945AOtCZL1lJDeIk3G5LthswI46Lw==
   dependencies:
     has-symbols "^1.0.0"
+
+is_js@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/is_js/-/is_js-0.8.0.tgz#9023ac8e1739a396fbf0aa0fefd46264eaf0f9a2"
+  integrity sha1-kCOsjhc5o5b78KoP79RiZOrw+aI=
 
 isarray@^1.0.0:
   version "1.0.0"

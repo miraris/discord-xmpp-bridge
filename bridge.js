@@ -2,11 +2,11 @@ const Eris = require('eris');
 const Redis = require('ioredis');
 const { client, xml, jid } = require('@xmpp/client');
 const debug = require('debug')('bridge');
-const vcard = require('./lib/vcard/caller');
-const avatar = require('./lib/utils/avatar');
-const pomfUpload = require('./lib/utils/owo');
-const avatarColor = require('./lib/utils/color');
-const helpers = require('./lib/utils/helpers');
+const vcard = require('./src/vcard/caller');
+const avatar = require('./src/utils/avatar');
+const pomfUpload = require('./src/utils/owo');
+const avatarColor = require('./src/utils/color');
+const helpers = require('./src/utils/helpers');
 
 // Redis
 const redis = new Redis(process.env.REDIS_URL);
