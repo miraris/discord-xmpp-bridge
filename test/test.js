@@ -1,5 +1,3 @@
-require('dotenv').config({ path: '../credentials.env' });
-
-const Bot = require('../src/bot');
+const Bot = require('../bridge');
 
 const bot = new Bot();

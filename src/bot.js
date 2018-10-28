@@ -1,37 +1,29 @@
 const Eris = require('eris');
-const env = require('good-env');
-const { client: xmppClient, xml, jid } = require('@xmpp/client');
-const debug = require('debug')('bridge');
+const { client: xmppClient } = require('@xmpp/client');
 const Cache = require('./cache');
-const vcard = require('./vcard/caller');
-
-const NS_MUC = 'http://jabber.org/protocol/muc';
-const NS_DISCO = 'http://jabber.org/protocol/disco#info';
-const NS_DATA_FORM = 'jabber:x:data';
+const { loadDirectory, initMessage } = require('./utils/helpers');
 
 class Bridge {
   constructor(credentials, options) {
-    this.credentials = credentials;
+    const defaultOptions = { prefix: 'niki ', embed: false, nickname: 'BridgeBot' };
 
-    this.cache = new Cache();
+    this.options = { ...defaultOptions, ...options };
+    this.cache = new Cache(credentials.redis);
+    this.discord = new Eris(credentials.discord);
+    this.xmpp = xmppClient(credentials.xmpp);
 
-    // connections
-    this.discord = new Eris(this.credentials.discord.token);
-    this.xmpp = xmppClient(this.credentials.xmpp);
+    // Set backreference properties
+    this.xmpp.__self = this;
+    this.discord.__self = this;
 
-    // Register event handlers
-    this.xmpp.on('stanza', this.onStanza.bind(this));
-    this.xmpp.on('online', this.onOnline.bind(this));
-    // etc.
-    this.discord.on('messageCreate', this.onMessageCreate.bind(this));
+    this.commands = new Eris.Collection();
 
-    // Alternatively, set a backreference property?
-    // xmpp.__self = this;
-    // xmpp.on('stanza', this.onStanza);
+    // Register event and command handlers
+    loadDirectory('./src/events/', ({ name, service, obj }) => this[service].on(name, obj));
+    loadDirectory('./src/commands/', ({ name, service, obj }) => this.commands.set(name, obj));
 
     // Connect to the services
-    this.discord.connect();
-    this.xmpp.start();
+    Promise.all([this.xmpp.start(), this.discord.connect()]).then(initMessage.bind(this));
   }
 }
 

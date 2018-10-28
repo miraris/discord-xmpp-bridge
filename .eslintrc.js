@@ -12,5 +12,6 @@ module.exports = {
     'no-console': 'off',
     'no-bitwise': 'off',
     'no-plusplus': 'off',
+    'no-underscore-dangle': 'off',
   },
 };

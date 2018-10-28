@@ -4,8 +4,8 @@ class Cache {
   /**
    * Redis cache
    */
-  constructor() {
-    this.redis = new Redis(process.env.REDIS_URL);
+  constructor(url) {
+    this.redis = new Redis(url);
   }
 
   /**
@@ -49,6 +49,35 @@ class Cache {
    */
   getAvatarField(hash, field) {
     return this.redis.hget(hash, field);
+  }
+
+  /**
+   * Add a bridge to the redis list
+   * @param {object} bridge
+   * @param {string} bridge.guild - Discord guild ID
+   * @param {string} bridge.muc - Jabber MUC JID
+   * @param {string} bridge.defaultChannel - Default Discord channel ID
+   */
+  async addBridge(bridge) {
+    const len = await this.redis.scard('bridges');
+    const key = `bridge:${len + 1}`;
+
+    await this.redis.hmset(key, bridge);
+
+    return this.redis.sadd('bridges', key);
+  }
+
+  /**
+   * Get bridges
+   */
+  async getBridges() {
+    const pipeline = this.redis.pipeline();
+
+    for (const b of await this.redis.smembers('bridges')) {
+      pipeline.hgetall(b);
+    }
+
+    return pipeline.exec().then(res => res.map(([err, val]) => val));
   }
 }
 
