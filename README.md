@@ -23,7 +23,7 @@ to the constructor.
 ```js
 new Bot(
   {
-    discord: 'discord token,
+    discord: 'discord token',
     redis: 'redis url',
     xmpp: {
       service: 'domain',
