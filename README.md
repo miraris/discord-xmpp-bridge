@@ -47,4 +47,3 @@ new Bot(
 3. Modularize the lib
 4. Less env variables and some kind of config constructor
 5. Maybe some kind of channel mapping and/or command handling, Jabber -> specific Discord channel
-````
