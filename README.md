@@ -20,7 +20,7 @@ then start - `node bridge.js`
 You can also use the bridge as a module, `require` it in your project and pass the `credentials` and `options` objects
 to the constructor.
 
-````js
+```js
 new Bot(
   {
     discord: 'discord token,
