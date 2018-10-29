@@ -23,27 +23,23 @@ to the constructor.
 ```js
 new Bot(
   {
-    discord: 'discord token',
-    redis: 'redis url',
+    discord: "discord token",
+    redis: "redis url",
     xmpp: {
-      service: 'domain',
-      username: 'username',
-      password: 'pass',
+      service: "domain",
+      username: "username",
+      password: "pass"
     },
     pomf: {
-      url: 'pomf url',
-      key: 'pomf key (optional)',
-      host: 'pomf host name (to build the image url)',
-    },
+      url: "pomf url",
+      key: "pomf key (optional)",
+      host: "pomf host name (to build the image url)"
+    }
   },
-  { owner: 'discord owner id' },
+  { owner: "discord owner id" }
 );
 ```
 
 ### TODO
 
-1. More native integrations - ~~attachments~~, better duplex emoji support, some embeds, **markdown**?
-2. Multi-channel support, same with rooms
-3. Modularize the lib
-4. Less env variables and some kind of config constructor
-5. Maybe some kind of channel mapping and/or command handling, Jabber -> specific Discord channel
+1. A command to send messages from channel to channel?

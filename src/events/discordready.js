@@ -4,13 +4,25 @@ module.exports = async function ready() {
   const self = this.__self;
   const bridgedChannels = await self.cache.redis.hgetall('guildtochannel').then(Object.values);
 
-  // TODO: check if webhook is ours (author/name) & optimize
+  const configureWebhooks = async (channel) => {
+    const existingWebhooks = await self.discord.getChannelWebhooks(channel);
+
+    const webhook = existingWebhooks.length
+      ? existingWebhooks[0]
+      : await self.discord.createChannelWebhook(channel, { name: self.options.nickname });
+
+    await self.cache.redis.hmset(`channel:${channel}`, {
+      id: webhook.id,
+      token: webhook.token,
+    });
+  };
+
+  const results = [];
 
   for (const channel of bridgedChannels) {
-    const webhooks = await self.discord.getChannelWebhooks(channel);
-    await self.cache.redis.hmset(`channel:${channel}`, {
-      id: webhooks[0].id,
-      token: webhooks[0].token,
-    });
+    results.push(configureWebhooks(channel));
   }
+
+  // Wait for the webhooks to configure
+  await Promise.all(results);
 };

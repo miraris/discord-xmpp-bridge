@@ -21,7 +21,7 @@ class Bridge {
 
     // Register event and command handlers
     loadDirectory('./src/events/', ({ name, service, obj }) => this[service].on(name, obj));
-    loadDirectory('./src/commands/', ({ name, service, obj }) => this.commands.set(name, obj));
+    loadDirectory('./src/commands/', ({ name, obj }) => this.commands.set(name, obj));
 
     // Connect to the services
     Promise.all([this.xmpp.start(), this.discord.connect()]).then(initMessage.bind(this));

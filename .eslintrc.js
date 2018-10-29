@@ -13,5 +13,7 @@ module.exports = {
     'no-bitwise': 'off',
     'no-plusplus': 'off',
     'no-underscore-dangle': 'off',
+    'no-unused-expressions': ['error', { allowShortCircuit: true }],
+    'no-continue': 'off',
   },
 };

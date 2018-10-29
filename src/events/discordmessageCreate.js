@@ -9,7 +9,6 @@ module.exports = async function messageCreate(msg) {
   // If message isn't a command relay to XMPP, if one is set up for the guild
   const to = await self.cache.redis.hget('guildtomuc', msg.channel.guild.id);
 
-  // eslint-disable-next-line no-unused-expressions
   to
     && self.xmpp.send(
       xml(

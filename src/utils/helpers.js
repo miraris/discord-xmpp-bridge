@@ -18,28 +18,28 @@ const botChannels = guilds => guilds
   .reduce((acc, val) => acc.concat(val));
 
 function initMessage() {
-  console.log('Started up.');
-  // for (const g of botChannels(this.discord.guilds)) {
-  //   this.discord.createMessage(g.id, {
-  //     content: 'Konnichiwa!',
-  //     embed: {
-  //       title: 'Niki 0.1.0',
-  //       url: 'https://github.com/miraris/discord-xmpp-bridge',
-  //       description:
-  //         "I'm a Discord <-> Jabber bridge bot, you can message and add me to your guilds and MUCs using the addresses below!",
-  //       fields: [
-  //         {
-  //           name: 'Jabber',
-  //           value: this.xmpp.jid.toString(),
-  //         },
-  //         {
-  //           name: 'Discord',
-  //           value: `${this.discord.user.username}#${this.discord.user.discriminator}`,
-  //         },
-  //       ],
-  //     },
-  //   });
-  // }
+  for (const g of botChannels(this.discord.guilds)) {
+    this.discord.createMessage(g.id, {
+      content: 'Konnichiwa!',
+      embed: {
+        title: 'Niki 0.1.0',
+        url: 'https://github.com/miraris/discord-xmpp-bridge',
+        description: `I'm a Discord <-> Jabber bridge bot, you can message and add me to your guilds and MUCs using the addresses below!
+          You can add me as a bridge between your servers using\n
+          \`niki addbridge <guild id> <muc jid> <default channel id>\``,
+        fields: [
+          {
+            name: 'Jabber',
+            value: this.xmpp.jid.toString(),
+          },
+          {
+            name: 'Discord',
+            value: `${this.discord.user.username}#${this.discord.user.discriminator}`,
+          },
+        ],
+      },
+    });
+  }
 }
 
 const loadDirectory = (directory, callback) => {
