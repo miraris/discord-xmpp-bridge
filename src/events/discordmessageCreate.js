@@ -5,17 +5,19 @@ module.exports = async function messageCreate(msg) {
   if (msg.author.bot) return;
 
   const self = this.__self;
+
+  // If message isn't a command relay to XMPP, if one is set up for the guild
   const to = await self.cache.redis.hget('guildtomuc', msg.channel.guild.id);
 
-  if (to) {
-    const message = xml(
-      'message',
-      { type: 'groupchat', to },
-      xml('body', {}, `[#${msg.channel.name}] <${msg.author.username}> ${buildDiscordMsg(msg)}`),
+  // eslint-disable-next-line no-unused-expressions
+  to
+    && self.xmpp.send(
+      xml(
+        'message',
+        { type: 'groupchat', to },
+        xml('body', {}, `[#${msg.channel.name}] <${msg.author.username}> ${buildDiscordMsg(msg)}`),
+      ),
     );
-    self.xmpp.send(message);
-    return;
-  }
 
   if (
     !(
@@ -24,7 +26,6 @@ module.exports = async function messageCreate(msg) {
     )
   ) return;
 
-  // Our standard argument/command name definition.
   const args = msg.content
     .slice(self.options.prefix.length)
     .trim()
@@ -34,6 +35,5 @@ module.exports = async function messageCreate(msg) {
 
   if (!cmd) return;
 
-  // Run the command
   cmd.run.bind(self)(msg, args);
 };
