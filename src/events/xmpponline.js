@@ -6,6 +6,6 @@ module.exports = async function online(address) {
   console.log('🗸', 'XMPP online as', address.toString());
 
   for (const b of await self.cache.getBridges()) {
-    joinMUC.bind(self)(b.muc);
+    joinMUC.bind(self)(b);
   }
 };

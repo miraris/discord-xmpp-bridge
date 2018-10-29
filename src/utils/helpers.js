@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { xml } = require('@xmpp/client');
 
+const basePath = () => path.dirname(require.main.filename);
+
 const buildDiscordMsg = (msg) => {
   if (msg.attachments.length === 0) {
     return msg.cleanContent;
@@ -50,9 +52,7 @@ const loadDirectory = (directory, callback) => {
     const service = fileName.startsWith('discord') ? 'discord' : 'xmpp';
 
     // eslint-disable-next-line
-    const obj = require(path.join(path.dirname(require.main.filename), directory, file));
-
-    console.log(obj);
+    const obj = require(path.join(basePath(), directory, file));
 
     callback({ name: fileName.replace(service, ''), service, obj });
   }
@@ -73,4 +73,5 @@ module.exports = {
   initMessage,
   loadDirectory,
   joinMUC,
+  basePath,
 };

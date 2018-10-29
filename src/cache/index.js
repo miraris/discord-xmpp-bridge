@@ -13,7 +13,7 @@ class Cache {
    * @param {string} user - The user avatar hash (SHA-1)
    */
   getAvatarHash(user) {
-    return this.redis.hget(user, 'avatarHash');
+    return this.redis.hget('avatarhash', user);
   }
 
   /**
@@ -22,7 +22,7 @@ class Cache {
    * @param {string} hash - The SHA-1 avatar hash
    */
   setAvatarHash(user, hash) {
-    return this.redis.hget(user, 'avatarHash', hash);
+    return this.redis.hset('avatarhash', user, hash);
   }
 
   /**
@@ -30,7 +30,7 @@ class Cache {
    * @param {string} hash - The avatar hash
    */
   getAvatar(hash) {
-    return this.redis.hgetall(hash);
+    return this.redis.hgetall(`avatar:${hash}`);
   }
 
   /**
@@ -39,7 +39,7 @@ class Cache {
    * @param {object} obj - Avatar data object
    */
   setAvatar(hash, obj) {
-    return this.redis.hmset(hash, obj);
+    return this.redis.hmset(`avatar:${hash}`, obj);
   }
 
   /**
@@ -48,7 +48,7 @@ class Cache {
    * @param {string} field - Specific field to get
    */
   getAvatarField(hash, field) {
-    return this.redis.hget(hash, field);
+    return this.redis.hget(`avatar:${hash}`, field);
   }
 
   /**
@@ -59,25 +59,19 @@ class Cache {
    * @param {string} bridge.defaultChannel - Default Discord channel ID
    */
   async addBridge(bridge) {
-    const len = await this.redis.scard('bridges');
-    const key = `bridge:${len + 1}`;
-
-    await this.redis.hmset(key, bridge);
-
-    return this.redis.sadd('bridges', key);
+    return this.redis
+      .pipeline()
+      .hset('guildtomuc', bridge.guild, bridge.muc)
+      .hset('muctoguild', bridge.muc, bridge.guild)
+      .hset('guildtochannel', bridge.guild, bridge.defaultChannel)
+      .exec();
   }
 
   /**
    * Get bridges
    */
   async getBridges() {
-    const pipeline = this.redis.pipeline();
-
-    for (const b of await this.redis.smembers('bridges')) {
-      pipeline.hgetall(b);
-    }
-
-    return pipeline.exec().then(res => res.map(([err, val]) => val));
+    return this.redis.hgetall('guildtomuc').then(Object.values);
   }
 }
 

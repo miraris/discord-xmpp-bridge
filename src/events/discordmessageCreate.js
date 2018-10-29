@@ -1,7 +1,21 @@
-module.exports = function messageCreate(msg) {
+const { xml } = require('@xmpp/client');
+const { buildDiscordMsg } = require('../utils/helpers');
+
+module.exports = async function messageCreate(msg) {
   if (msg.author.bot) return;
 
   const self = this.__self;
+  const to = await self.cache.redis.hget('guildtomuc', msg.channel.guild.id);
+
+  if (to) {
+    const message = xml(
+      'message',
+      { type: 'groupchat', to },
+      xml('body', {}, `[#${msg.channel.name}] <${msg.author.username}> ${buildDiscordMsg(msg)}`),
+    );
+    self.xmpp.send(message);
+    return;
+  }
 
   if (
     !(
@@ -9,8 +23,6 @@ module.exports = function messageCreate(msg) {
       || (msg.mentions.length && self.discord.user.id === msg.mentions[0].id)
     )
   ) return;
-
-  console.log('Message starts with prefix or got mentioned');
 
   // Our standard argument/command name definition.
   const args = msg.content

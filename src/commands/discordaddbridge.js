@@ -9,6 +9,8 @@ exports.run = async function addbridge(msg, args) {
 
   // join the muc
   joinMUC.bind(this)(args[1]);
+  // ew..
+  this.discord.emit('ready');
 
   await msg.channel.createMessage(
     `Success! Added a bridge between ${this.discord.guilds.find(g => g.id === args[0]).name} and ${
